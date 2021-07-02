@@ -72,6 +72,9 @@ const (
 
 	// CanUseAKAMAICDN indicates the provider support the specific AKAMAICDN records that only the Akamai EdgeDns provider supports
 	CanUseAKAMAICDN
+
+	// CanUseOPENPGPKEY indicates the provider can handle OPENPGPKEY records
+	CanUseOPENPGPKEY
 )
 
 var providerCapabilities = map[string]map[Capability]bool{}
