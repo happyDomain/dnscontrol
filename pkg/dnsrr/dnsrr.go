@@ -97,8 +97,40 @@ func helperRRtoRC(rr dnsv1.RR, origin string, fixBug bool) (models.RecordConfig,
 		} else {
 			err = rc.SetTargetTXTs(v.Txt)
 		}
+	case *dnsv1.AVC:
+		// Same as *dnsv1.TXT
+		if fixBug {
+			t := strings.Join(v.Txt, "")
+			te := t
+			te = strings.ReplaceAll(te, `\\`, `\`)
+			te = strings.ReplaceAll(te, `\"`, `"`)
+			err = rc.SetTargetTXT(te)
+		} else {
+			err = rc.SetTargetTXTs(v.Txt)
+		}
+	case *dnsv1.SPF:
+		// Same as *dnsv1.TXT
+		if fixBug {
+			t := strings.Join(v.Txt, "")
+			te := t
+			te = strings.ReplaceAll(te, `\\`, `\`)
+			te = strings.ReplaceAll(te, `\"`, `"`)
+			err = rc.SetTargetTXT(te)
+		} else {
+			err = rc.SetTargetTXTs(v.Txt)
+		}
+	case *dnsv1.NINFO:
+		if fixBug {
+			t := strings.Join(v.ZSData, "")
+			te := t
+			te = strings.ReplaceAll(te, `\\`, `\`)
+			te = strings.ReplaceAll(te, `\"`, `"`)
+			err = rc.SetTargetTXT(te)
+		} else {
+			err = rc.SetTargetTXTs(v.ZSData)
+		}
 	default:
-		return *rc, fmt.Errorf("rrToRecord: Unimplemented zone record type=%s (%v)", rc.Type, rr)
+		err = rc.SetTarget(v.String()[len(v.Header().String()):])
 	}
 	if err != nil {
 		return *rc, fmt.Errorf("unparsable record received: %w", err)
