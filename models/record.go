@@ -446,9 +446,7 @@ func (rc *RecordConfig) ToRR() dns.RR {
 	case dns.TypeTXT:
 		rr.(*dns.TXT).Txt = rc.TxtStrings
 	default:
-		panic(fmt.Sprintf("ToRR: Unimplemented rtype %v", rc.Type))
-		// We panic so that we quickly find any switch statements
-		// that have not been updated for a new RR type.
+		rr, _ = dns.NewRR(fmt.Sprintf("%s %d IN %s %s\n", rc.NameFQDN+".", rc.TTL, rc.Type, rc.GetTargetField()))
 	}
 
 	return rr
