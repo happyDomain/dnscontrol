@@ -82,8 +82,41 @@ func helperRRtoRC(rr dns.RR, origin string, fixBug bool) (RecordConfig, error) {
 		} else {
 			err = rc.SetTargetTXTs(v.Txt)
 		}
+	// Records identical to TXT, with "" to escape
+	case *dns.AVC:
+		if fixBug {
+			t := strings.Join(v.Txt, "")
+			te := t
+			te = strings.ReplaceAll(te, `\\`, `\`)
+			te = strings.ReplaceAll(te, `\"`, `"`)
+			err = rc.SetTargetTXT(te)
+		} else {
+			err = rc.SetTargetTXTs(v.Txt)
+		}
+	case *dns.SPF:
+		if fixBug {
+			t := strings.Join(v.Txt, "")
+			te := t
+			te = strings.ReplaceAll(te, `\\`, `\`)
+			te = strings.ReplaceAll(te, `\"`, `"`)
+			err = rc.SetTargetTXT(te)
+		} else {
+			err = rc.SetTargetTXTs(v.Txt)
+		}
+	case *dns.NINFO:
+		if fixBug {
+			t := strings.Join(v.ZSData, "")
+			te := t
+			te = strings.ReplaceAll(te, `\\`, `\`)
+			te = strings.ReplaceAll(te, `\"`, `"`)
+			err = rc.SetTargetTXT(te)
+		} else {
+			err = rc.SetTargetTXTs(v.ZSData)
+		}
+
+	// Others records, without ""
 	default:
-		return *rc, fmt.Errorf("rrToRecord: Unimplemented zone record type=%s (%v)", rc.Type, rr)
+		err = rc.SetTarget(v.String()[len(v.Header().String()):])
 	}
 	if err != nil {
 		return *rc, fmt.Errorf("unparsable record received: %w", err)
