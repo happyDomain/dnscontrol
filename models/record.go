@@ -483,10 +483,12 @@ func (rc *RecordConfig) ToRR() dnsv1.RR {
 		rr.(*dnsv1.TLSA).Certificate = rc.GetTargetField()
 	case dnsv1.TypeTXT:
 		rr.(*dnsv1.TXT).Txt = rc.GetTargetTXTSegmented()
+	case dnsv1.TypeAVC:
+		rr.(*dnsv1.AVC).Txt = rc.GetTargetTXTSegmented()
+	case dnsv1.TypeNINFO:
+		rr.(*dnsv1.NINFO).ZSData = rc.GetTargetTXTSegmented()
 	default:
-		panic(fmt.Sprintf("ToRR: Unimplemented rtype %v", rc.Type))
-		// We panic so that we quickly find any switch statements
-		// that have not been updated for a new RR type.
+		rr, _ = dnsv1.NewRR(fmt.Sprintf("%s %d IN %s %s\n", rc.NameFQDN+".", rc.TTL, rc.Type, rc.GetTargetField()))
 	}
 
 	return rr
