@@ -416,6 +416,8 @@ func (rc *RecordConfig) ToRR() dns.RR {
 		rr.(*dns.MX).Mx = rc.GetTargetField()
 	case dns.TypeNS:
 		rr.(*dns.NS).Ns = rc.GetTargetField()
+	case dns.TypeOPENPGPKEY:
+		rr.(*dns.OPENPGPKEY).PublicKey = rc.GetTargetField()
 	case dns.TypeSOA:
 		rr.(*dns.SOA).Ns = rc.GetTargetField()
 		rr.(*dns.SOA).Mbox = rc.SoaMbox
