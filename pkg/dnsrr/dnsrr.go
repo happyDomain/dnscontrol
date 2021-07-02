@@ -88,6 +88,8 @@ func helperRRtoRC(rr dnsv1.RR, origin string, fixBug bool) (models.RecordConfig,
 	case *dnsv1.TLSA:
 		err = rc.SetTargetTLSA(v.Usage, v.Selector, v.MatchingType, v.Certificate)
 	case *dnsv1.TXT:
+	case *dnsv1.AVC:
+	case *dnsv1.SPF:
 		if fixBug {
 			t := strings.Join(v.Txt, "")
 			te := t
@@ -97,8 +99,18 @@ func helperRRtoRC(rr dnsv1.RR, origin string, fixBug bool) (models.RecordConfig,
 		} else {
 			err = rc.SetTargetTXTs(v.Txt)
 		}
+	case *dnsv1.NINFO:
+		if fixBug {
+			t := strings.Join(v.ZSData, "")
+			te := t
+			te = strings.ReplaceAll(te, `\\`, `\`)
+			te = strings.ReplaceAll(te, `\"`, `"`)
+			err = rc.SetTargetTXT(te)
+		} else {
+			err = rc.SetTargetTXTs(v.ZSData)
+		}
 	default:
-		return *rc, fmt.Errorf("rrToRecord: Unimplemented zone record type=%s (%v)", rc.Type, rr)
+		err = rc.SetTarget(v.String()[len(v.Header().String()):])
 	}
 	if err != nil {
 		return *rc, fmt.Errorf("unparsable record received: %w", err)
