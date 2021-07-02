@@ -43,6 +43,7 @@ var features = providers.DocumentationNotes{
 	providers.CanGetZones:            providers.Cannot(),
 	providers.CanUseCAA:              providers.Can(),
 	providers.CanUseNAPTR:            providers.Can(),
+	providers.CanUseOPENPGPKEY:       providers.Can(),
 	providers.CanUsePTR:              providers.Can(),
 	providers.CanUseSRV:              providers.Can(),
 	providers.CanUseSSHFP:            providers.Can(),

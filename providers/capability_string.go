@@ -27,6 +27,7 @@ func _() {
 	_ = x[DocCreateDomains-16]
 	_ = x[DocDualHost-17]
 	_ = x[DocOfficiallySupported-18]
+	_ = x[CanUseOPENPGPKEY-19]
 }
 
 const _Capability_name = "CanAutoDNSSECCanGetZonesCanUseAKAMAICDNCanUseAliasCanUseAzureAliasCanUseCAACanUseDSCanUseDSForChildrenCanUseNAPTRCanUsePTRCanUseRoute53AliasCanUseSOACanUseSRVCanUseSSHFPCanUseTLSACantUseNOPURGEDocCreateDomainsDocDualHostDocOfficiallySupported"
