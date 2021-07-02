@@ -77,6 +77,9 @@ const (
 
 	// DocOfficiallySupported means it is actively used and maintained by stack exchange
 	DocOfficiallySupported
+
+	// CanUseOPENPGPKEY indicates the provider can handle OPENPGPKEY records
+	CanUseOPENPGPKEY
 )
 
 var providerCapabilities = map[string]map[Capability]bool{}
