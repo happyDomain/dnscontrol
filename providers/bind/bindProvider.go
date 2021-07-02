@@ -37,6 +37,7 @@ var features = providers.DocumentationNotes{
 	providers.CanUseCAA:              providers.Can(),
 	providers.CanUseDS:               providers.Can(),
 	providers.CanUseNAPTR:            providers.Can(),
+	providers.CanUseOPENPGPKEY:       providers.Can(),
 	providers.CanUsePTR:              providers.Can(),
 	providers.CanUseSOA:              providers.Can(),
 	providers.CanUseSRV:              providers.Can(),
