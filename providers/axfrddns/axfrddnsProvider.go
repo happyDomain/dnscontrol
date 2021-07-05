@@ -41,6 +41,7 @@ var features = providers.DocumentationNotes{
 	providers.CanUseNAPTR:            providers.Can(),
 	providers.CanUseOPENPGPKEY:       providers.Can(),
 	providers.CanUsePTR:              providers.Can(),
+	providers.CanUseSOA:              providers.Can(),
 	providers.CanUseSRV:              providers.Can(),
 	providers.CanUseSSHFP:            providers.Can(),
 	providers.CanUseTLSA:             providers.Can(),
@@ -317,11 +318,6 @@ func (c *axfrddnsProvider) GetDomainCorrections(dc *models.DomainConfig) ([]*mod
 		return nil, err
 	}
 
-	if len(foundRecords) >= 1 && foundRecords[0].Type == "SOA" {
-		// Ignoring the SOA, others providers  don't manage it either.
-		foundRecords = foundRecords[1:]
-	}
-
 	hasDnssecRecords := false
 	if len(foundRecords) >= 1 {
 		last := foundRecords[len(foundRecords)-1]
@@ -418,15 +414,36 @@ func (c *axfrddnsProvider) GetDomainCorrections(dc *models.DomainConfig) ([]*mod
 		}
 	}
 	for _, mod := range modify {
-		corrections = append(corrections, &models.Correction{
-			Msg: mod.String(),
-			F: func() error {
-				return c.updateZone(client, dc, func(update *dns.Msg) {
-					update.Remove([]dns.RR{mod.Existing.ToRR()})
-					update.Insert([]dns.RR{mod.Desired.ToRR()})
+		oldR := mod.Existing
+		newR := mod.Desired
+		if newR.Type == "SOA" {
+			// Ignore SOA if only the timestamp differs, it is managed by the server
+			if oldR.GetTargetField() != newR.GetTargetField() ||
+				oldR.SoaMbox != newR.SoaMbox ||
+				oldR.SoaRefresh != newR.SoaRefresh ||
+				oldR.SoaRetry != newR.SoaRetry ||
+				oldR.SoaExpire != newR.SoaExpire ||
+				oldR.SoaMinttl != newR.SoaMinttl {
+				corrections = append(corrections, &models.Correction{
+					Msg: mod.String(),
+					F: func() error {
+						return c.updateZone(client, dc, func(update *dns.Msg) {
+							update.Insert([]dns.RR{newR.ToRR()})
+						})
+					},
 				})
-			},
-		})
+			}
+		} else {
+			corrections = append(corrections, &models.Correction{
+				Msg: mod.String(),
+				F: func() error {
+					return c.updateZone(client, dc, func(update *dns.Msg) {
+						update.Remove([]dns.RR{oldR.ToRR()})
+						update.Insert([]dns.RR{newR.ToRR()})
+					})
+				},
+			})
+		}
 	}
 
 	return corrections, nil
