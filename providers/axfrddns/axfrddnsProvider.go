@@ -365,43 +365,17 @@ func (c *axfrddnsProvider) GetZoneRecords(domain string, meta map[string]string)
 	return foundRecords, nil
 }
 
-// BuildCorrection return a Correction for a given set of DDNS update and the corresponding message.
-func (c *axfrddnsProvider) BuildCorrection(dc *models.DomainConfig, msgs []string, updates []*dns.Msg) *models.Correction {
-	if updates == nil {
-		return &models.Correction{
-			Msg: fmt.Sprintf("DDNS UPDATES to '%s' (primary master: '%s'). Changes:\n%s", dc.Name, c.master, strings.Join(msgs, "\n")),
+// hasDeletionForName returns true if there exist a corrections for [name] which is a deletion
+func hasDeletionForName(changes diff2.ChangeList, name string) bool {
+	for _, change := range changes {
+		switch change.Type {
+		case diff2.DELETE:
+			if change.Old[0].Name == name {
+				return true
+			}
 		}
 	}
-	return &models.Correction{
-		Msg: fmt.Sprintf("DDNS UPDATES to '%s' (primary master: '%s'). Changes:\n%s", dc.Name, c.master, strings.Join(msgs, "\n")),
-		F: func() error {
-			for _, update := range updates {
-				update.Compress = true
-				client := new(dns.Client)
-				client.Net = c.updateMode
-				client.Timeout = dnsTimeout
-				if c.updateKey != nil {
-					client.TsigSecret = map[string]string{c.updateKey.id: c.updateKey.secret}
-					update.SetTsig(c.updateKey.id, c.updateKey.algo, 300, time.Now().Unix())
-					if c.updateKey.algo == dns.HmacMD5 {
-						client.TsigProvider = md5Provider(c.updateKey.secret)
-					}
-				}
-
-				msg, _, err := client.Exchange(update, c.master)
-				if err != nil {
-					return err
-				}
-				if msg.MsgHdr.Rcode != 0 {
-					return fmt.Errorf("[Error] AXFRDDNS: nameserver refused to update the zone: %s (%d)",
-						dns.RcodeToString[msg.MsgHdr.Rcode],
-						msg.MsgHdr.Rcode)
-				}
-			}
-
-			return nil
-		},
-	}
+	return false
 }
 
 // hasNSDeletion returns true if there exist a correction that deletes or changes an NS record
@@ -453,9 +427,7 @@ func (c *axfrddnsProvider) GetZoneRecordsCorrections(dc *models.DomainConfig, fo
 	// we first insert a dummy NS record that we will remove
 	// at the end of the batched update.
 
-	var msgs []string
-	var reports []string
-	updates := []*dns.Msg{}
+	var corrections []*models.Correction
 
 	dummyNs1, err := dns.NewRR(dc.Name + ". IN NS dnscontrol.invalid.")
 	if err != nil {
@@ -466,6 +438,17 @@ func (c *axfrddnsProvider) GetZoneRecordsCorrections(dc *models.DomainConfig, fo
 		return nil, 0, err
 	}
 
+	client := new(dns.Client)
+	client.Net = c.updateMode
+	client.Timeout = dnsTimeout
+	if c.updateKey != nil {
+		client.TsigSecret =
+			map[string]string{c.updateKey.id: c.updateKey.secret}
+		if c.updateKey.algo == dns.HmacMD5 {
+			client.TsigProvider = md5Provider(c.updateKey.secret)
+		}
+	}
+
 	changes, actualChangeCount, err := diff2.ByRecord(foundRecords, dc, nil)
 	if err != nil {
 		return nil, 0, err
@@ -473,9 +456,6 @@ func (c *axfrddnsProvider) GetZoneRecordsCorrections(dc *models.DomainConfig, fo
 	if changes == nil {
 		return nil, 0, nil
 	}
-
-	update := new(dns.Msg)
-	update.SetUpdate(dc.Name + ".")
 
 	// A DNS server should silently ignore a DDNS update that removes
 	// the last NS record of a zone. Since modifying a record is
@@ -492,76 +472,89 @@ func (c *axfrddnsProvider) GetZoneRecordsCorrections(dc *models.DomainConfig, fo
 	hasNSDeletion := hasNSDeletion(changes)
 
 	if hasNSDeletion {
-		update.Insert([]dns.RR{dummyNs1})
+		corrections = append(corrections, &models.Correction{
+			Msg: "Dummy NS record to handle root NS changes (before)",
+			F: func() error {
+				return c.updateZone(client, dc, func(update *dns.Msg) {
+					update.Insert([]dns.RR{dummyNs1})
+				})
+			},
+		})
 	}
 
-	i := 1
-	appendFinalUpdate := true
-
-	for _, change := range changes {
+	for _, ch := range changes {
+		change := ch
 		switch change.Type {
 		case diff2.DELETE:
-			msgs = append(msgs, change.Msgs[0])
-			// It's semantically invalid for any RRs to exist alongside a
-			// CNAME RR
-			if change.Old[0].Type == "CNAME" {
-				update.RemoveName([]dns.RR{change.Old[0].ToRR()})
-			} else {
-				update.Remove([]dns.RR{change.Old[0].ToRR()})
-			}
+			corrections = append(corrections, &models.Correction{
+				Msg: change.Msgs[0],
+				F: func() error {
+					return c.updateZone(client, dc, func(update *dns.Msg) {
+						update.Remove([]dns.RR{change.Old[0].ToRR()})
+					})
+				},
+			})
 		case diff2.CREATE:
-			msgs = append(msgs, change.Msgs[0])
-			// It's semantically invalid for any RRs to exist alongside a
-			// CNAME RR
-			if change.New[0].Type == "CNAME" {
-				update.RemoveName([]dns.RR{change.New[0].ToRR()})
-			}
-			update.Insert([]dns.RR{change.New[0].ToRR()})
+			corrections = append(corrections, &models.Correction{
+				Msg: change.Msgs[0],
+				F: func() error {
+					return c.updateZone(client, dc, func(update *dns.Msg) {
+						update.Insert([]dns.RR{change.New[0].ToRR()})
+					})
+				},
+			})
 		case diff2.CHANGE:
-			msgs = append(msgs, change.Msgs[0])
-			// It's semantically invalid for any RRs to exist alongside a
-			// CNAME RR
-			if (change.New[0].Type == "CNAME") || (change.Old[0].Type == "CNAME") {
-				update.RemoveName([]dns.RR{change.Old[0].ToRR()})
-			} else {
-				update.Remove([]dns.RR{change.Old[0].ToRR()})
-			}
-			update.Insert([]dns.RR{change.New[0].ToRR()})
+			corrections = append(corrections, &models.Correction{
+				Msg: change.Msgs[0],
+				F: func() error {
+					return c.updateZone(client, dc, func(update *dns.Msg) {
+						update.Remove([]dns.RR{change.Old[0].ToRR()})
+						update.Insert([]dns.RR{change.New[0].ToRR()})
+					})
+				},
+			})
 		case diff2.REPORT:
-			reports = append(reports, change.Msgs...)
-		}
-
-		// Chunk packets that exceed 2^14 = 16 KiB.
-		// A single DNS RR can theoretically reach 64 KiB, the total packet limit.
-		// This is a compromise, succeeding whenever RRs are not bigger than about 64 KiB - 16 KiB = 48 KiB.
-		if update.Len() >= 2<<13 {
-			updates = append(updates, update)
-			update = new(dns.Msg)
-			update.SetUpdate(dc.Name + ".")
-			appendFinalUpdate = false
-			i = 1
-		} else {
-			appendFinalUpdate = true
-			i++
+			for _, msg := range change.Msgs {
+				corrections = append(corrections, &models.Correction{
+					Msg: msg,
+				})
+			}
 		}
 	}
 
 	if hasNSDeletion {
-		update.Remove([]dns.RR{dummyNs2})
-		appendFinalUpdate = true
+		corrections = append(corrections, &models.Correction{
+			Msg: "Dummy NS record to handle root NS changes (after)",
+			F: func() error {
+				return c.updateZone(client, dc, func(update *dns.Msg) {
+					update.Remove([]dns.RR{dummyNs2})
+				})
+			},
+		})
 	}
 
-	if appendFinalUpdate {
-		updates = append(updates, update)
+	return corrections, actualChangeCount, nil
+}
+
+func (c *axfrddnsProvider) updateZone(client *dns.Client, dc *models.DomainConfig, f func(*dns.Msg)) error {
+	update := new(dns.Msg)
+	update.SetUpdate(dc.Name + ".")
+
+	if c.updateKey != nil {
+		update.SetTsig(c.updateKey.id, c.updateKey.algo, 300, time.Now().Unix())
 	}
 
-	returnValue := []*models.Correction{}
+	f(update)
 
-	if len(msgs) > 0 {
-		returnValue = append(returnValue, c.BuildCorrection(dc, msgs, updates))
+	msg, _, err := client.Exchange(update, c.master)
+	if err != nil {
+		return err
 	}
-	if len(reports) > 0 {
-		returnValue = append(returnValue, c.BuildCorrection(dc, reports, nil))
+	if msg.MsgHdr.Rcode != 0 {
+		return fmt.Errorf("[Error] AXFRDDNS: nameserver refused to update the zone: %s (%d)",
+			dns.RcodeToString[msg.MsgHdr.Rcode],
+			msg.MsgHdr.Rcode)
 	}
-	return returnValue, actualChangeCount, nil
+
+	return nil
 }
