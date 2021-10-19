@@ -26,24 +26,21 @@ require (
 	github.com/dnsimple/dnsimple-go v0.70.1
 	github.com/exoscale/egoscale v0.59.0
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/frankban/quicktest v1.11.3 // indirect
 	github.com/go-acme/lego v2.7.2+incompatible
 	github.com/go-gandi/go-gandi v0.0.0-20200921091836-0d8a64b9cc09
 	github.com/gobwas/glob v0.2.4-0.20181002190808-e7a84e9525fe
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/google/go-github/v35 v35.3.0
 	github.com/gopherjs/jquery v0.0.0-20191017083323-73f4c7416038
-	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
-	github.com/hashicorp/vault/api v1.1.1
+	github.com/hashicorp/vault/api v1.2.0
 	github.com/hexonet/go-sdk/v3 v3.5.2
 	github.com/jarcoal/httpmock v1.0.8 // indirect
 	github.com/jinzhu/copier v0.3.2
 	github.com/juju/testing v0.0.0-20210324180055-18c50b0c2098 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20201022064351-38db28db192b // indirect
 	github.com/miekg/dns v1.1.43
-	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/mittwald/go-powerdns v0.5.2
 	github.com/namedotcom/go v0.0.0-20180403034216-08470befbe04
 	github.com/nrdcg/goinwx v0.8.1
