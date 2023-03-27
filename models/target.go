@@ -105,7 +105,7 @@ func (rc *RecordConfig) GetTargetDebug() string {
 	}
 	content := fmt.Sprintf("%s %s %s %d", rc.Type, rc.NameFQDN, target, rc.TTL)
 	switch rc.Type { // #rtype_variations
-	case "A", "AAAA", "AKAMAICDN", "CNAME", "DHCID", "NS", "PTR", "TXT":
+	case "A", "AAAA", "AKAMAICDN", "CNAME", "DHCID", "NS", "PTR", "TXT", "OPENPGPKEY":
 		// Nothing special.
 	case "AZURE_ALIAS":
 		content += fmt.Sprintf(" type=%s", rc.AzureAlias["type"])
