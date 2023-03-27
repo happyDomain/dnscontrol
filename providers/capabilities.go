@@ -49,6 +49,9 @@ const (
 	// CanUseNAPTR indicates the provider can handle NAPTR records
 	CanUseNAPTR
 
+	// CanUseOPENPGPKEY indicates the provider can handle RFC7929 OPENPGPKEY records
+	CanUseOPENPGPKEY
+
 	// CanUsePTR indicates the provider can handle PTR records
 	CanUsePTR
 
