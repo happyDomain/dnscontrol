@@ -372,7 +372,7 @@ func hasNSDeletion(changes diff2.ChangeList) bool {
 // GetZoneRecordsCorrections returns a list of corrections that will turn existing records into dc.Records.
 func (c *axfrddnsProvider) GetZoneRecordsCorrections(dc *models.DomainConfig, foundRecords models.Records) ([]*models.Correction, error) {
 	// Ignoring the SOA, others providers don't manage it either.
-	if len(foundRecords) >= 1 && foundRecords[0].Type == "SOA" {
+	if len(foundRecords) >= 1 && foundRecords[0].Type == "SOA" && (len(dc.Records) == 0 || dc.Records[0].Type != "SOA") {
 		foundRecords = foundRecords[1:]
 	}
 
