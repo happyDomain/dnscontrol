@@ -132,7 +132,7 @@ func (dc *DomainConfig) Punycode() error {
 			rec.SetTarget(t)
 		case "CLOUDFLAREAPI_SINGLE_REDIRECT", "CF_REDIRECT", "CF_TEMP_REDIRECT", "CF_WORKER_ROUTE":
 			rec.SetTarget(rec.GetTargetField())
-		case "A", "AAAA", "CAA", "DHCID", "DNSKEY", "DS", "HTTPS", "LOC", "NAPTR", "SOA", "SSHFP", "SVCB", "TXT", "TLSA", "AZURE_ALIAS":
+		case "A", "AAAA", "CAA", "DHCID", "DNSKEY", "DS", "HTTPS", "LOC", "NAPTR", "SOA", "SSHFP", "SVCB", "TXT", "TLSA", "AZURE_ALIAS", "OPENPGPKEY":
 			// Nothing to do.
 		default:
 			return fmt.Errorf("Punycode rtype %v unimplemented", rec.Type)
