@@ -60,6 +60,8 @@ func helperRRtoRC(rr dns.RR, origin string, fixBug bool) (RecordConfig, error) {
 		err = rc.SetTargetNAPTR(v.Order, v.Preference, v.Flags, v.Service, v.Regexp, v.Replacement)
 	case *dns.NS:
 		err = rc.SetTarget(v.Ns)
+	case *dns.OPENPGPKEY:
+		err = rc.SetTargetOpenPGPKey(v.PublicKey)
 	case *dns.PTR:
 		err = rc.SetTarget(v.Ptr)
 	case *dns.SOA:
