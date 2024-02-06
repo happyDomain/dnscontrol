@@ -1,8 +1,12 @@
 package powerdns
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
 
 	"github.com/mittwald/go-powerdns/apis/zones"
 
@@ -89,10 +93,38 @@ func newDSP(m map[string]string, metadata json.RawMessage) (providers.DNSService
 		return dsp, err
 	}
 
+	client := &http.Client{}
+
+	if _, ok := m["skipTLSVerify"]; ok {
+		if client.Transport == nil {
+			client.Transport = &http.Transport{TLSClientConfig: &tls.Config{}}
+		}
+
+		client.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify, err = strconv.ParseBool(m["skipTLSVerify"])
+		if err != nil {
+			return dsp, err
+		}
+	}
+
+	if _, ok := m["cert"]; ok {
+		if client.Transport == nil {
+			client.Transport = &http.Transport{TLSClientConfig: &tls.Config{}}
+		}
+
+		roots := x509.NewCertPool()
+		ok := roots.AppendCertsFromPEM([]byte(m["cert"]))
+		if !ok {
+			return dsp, fmt.Errorf("unable to parse given certificate")
+		}
+
+		client.Transport.(*http.Transport).TLSClientConfig.RootCAs = roots
+	}
+
 	var clientErr error
 	dsp.client, clientErr = pdns.New(
 		pdns.WithBaseURL(dsp.APIUrl),
 		pdns.WithAPIKeyAuthentication(dsp.APIKey),
+		pdns.WithHTTPClient(client),
 	)
 	return dsp, clientErr
 }
