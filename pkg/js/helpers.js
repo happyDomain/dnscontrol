@@ -1606,6 +1606,7 @@ function SPF_BUILDER(value) {
 // iodef: The contact mail address. (optional)
 // iodef_critical: Boolean if sending report is required/critical. If not supported, certificate should be refused. (optional)
 // issue: List of CAs which are allowed to issue certificates for the domain (creates one record for each).
+// issuemail: Allowed CAs which can issue e-mail certificates for this domain. (creates one record for each)
 // issuewild: Allowed CAs which can issue wildcard certificates for this domain. (creates one record for each)
 // ttl: The time for TTL, integer or string. (default: not defined, using DefaultTTL)
 
@@ -1615,6 +1616,7 @@ function CAA_BUILDER(value) {
     }
 
     if (value.issue && value.issue == 'none') value.issue = [';'];
+    if (value.issuemail && value.issuemail == 'none') value.issuemail = [';'];
     if (value.issuewild && value.issuewild == 'none') value.issuewild = [';'];
 
     if (
@@ -1650,6 +1652,15 @@ function CAA_BUILDER(value) {
         }
         for (var i = 0, len = value.issue.length; i < len; i++)
             r.push(CAA(value.label, 'issue', value.issue[i], flag, CAA_TTL));
+    }
+
+    if (value.issuemail) {
+        var flag = function () {};
+        if (value.issuemail_critical) {
+            flag = CAA_CRITICAL;
+        }
+        for (var i = 0, len = value.issuemail.length; i < len; i++)
+            r.push(CAA(value.label, 'issuemail', value.issuemail[i], flag));
     }
 
     if (value.issuewild) {

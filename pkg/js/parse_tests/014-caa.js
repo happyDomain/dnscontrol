@@ -3,6 +3,8 @@ D("foo.com","none",
     CAA("@","issue","letsencrypt.org"),
     // Allow no CA to issue wildcard certificate for this domain
     CAA("@","issuewild",";"),
+    // Allow no CA to issue e-mail certificate for this domain
+    CAA("@","issuemail",";"),
     // Report all violation to test@example.com. If CA does not support
     // this record then refuse to issue any certificate
     CAA("@", "iodef", "mailto:test@example.com", CAA_CRITICAL),

@@ -253,8 +253,9 @@ func TestWriteZoneFileCaa(t *testing.T) {
 	r4, _ := dns.NewRR(`bosun.org. 300 IN CAA 0 iodef "https://example.com"`)
 	r5, _ := dns.NewRR(`bosun.org. 300 IN CAA 0 iodef "https://example.net"`)
 	r6, _ := dns.NewRR(`bosun.org. 300 IN CAA 1 iodef "mailto:example.com"`)
+	r7, _ := dns.NewRR(`bosun.org. 300 IN CAA 0 issuemail ";"`)
 	buf := &bytes.Buffer{}
-	writeZoneFileRR(buf, []dns.RR{r1, r2, r3, r4, r5, r6}, "bosun.org")
+	writeZoneFileRR(buf, []dns.RR{r1, r2, r3, r4, r5, r6, r7}, "bosun.org")
 	if buf.String() != testdataZFCAA {
 		t.Log(buf.String())
 		t.Log(testdataZFCAA)
@@ -270,6 +271,7 @@ var testdataZFCAA = `$TTL 300
                  IN CAA   0 iodef "https://example.net"
                  IN CAA   0 issue "letsencrypt.org"
                  IN CAA   0 issuewild ";"
+                 IN CAA   0 issuemail ";"
 `
 
 // r is shorthand for strings.Repeat()

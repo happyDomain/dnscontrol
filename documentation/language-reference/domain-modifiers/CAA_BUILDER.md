@@ -6,6 +6,8 @@ parameters:
   - iodef_critical
   - issue
   - issue_critical
+  - issuemail
+  - issuemail_critical
   - issuewild
   - issuewild_critical
   - ttl
@@ -16,6 +18,8 @@ parameter_types:
   iodef_critical: boolean?
   issue: string[]
   issue_critical: boolean?
+  issuemail: string[]
+  issuemail_critical: boolean?
   issuewild: string[]
   issuewild_critical: boolean?
   ttl: Duration?
@@ -41,6 +45,7 @@ D("example.com", REG_MY_PROVIDER, DnsProvider(DSP_MY_PROVIDER),
       "letsencrypt.org",
       "comodoca.com",
     ],
+    issuemail: "none",
     issuewild: "none",
   }),
 END);
@@ -56,6 +61,7 @@ D("example.com", REG_MY_PROVIDER, DnsProvider(DSP_MY_PROVIDER),
   CAA("@", "issue", "letsencrypt.org"),
   CAA("@", "issue", "comodoca.com"),
   CAA("@", "issuewild", ";"),
+  CAA("@", "issuemail", ";"),
 END);
 ```
 {% endcode %}
@@ -67,6 +73,7 @@ which in turns yield the following records:
 @ 300 IN CAA 0 issue "letsencrypt.org"
 @ 300 IN CAA 0 issue "comodoca.com"
 @ 300 IN CAA 0 issuewild ";"
+@ 300 IN CAA 0 issuemail ";"
 ```
 
 ### Example with CAA_CRITICAL flag on all records
@@ -85,6 +92,8 @@ D("example.com", REG_MY_PROVIDER, DnsProvider(DSP_MY_PROVIDER),
       "comodoca.com",
     ],
     issue_critical: true,
+    issuemail: "none",
+    issuemail_critical: true,
     issuewild: "none",
     issuewild_critical: true,
   }),
@@ -100,6 +109,7 @@ D("example.com", REG_MY_PROVIDER, DnsProvider(DSP_MY_PROVIDER),
   CAA("@", "iodef", "mailto:test@example.com", CAA_CRITICAL),
   CAA("@", "issue", "letsencrypt.org", CAA_CRITICAL),
   CAA("@", "issue", "comodoca.com", CAA_CRITICAL),
+  CAA("@", "issuemail", ";", CAA_CRITICAL),
   CAA("@", "issuewild", ";", CAA_CRITICAL),
 END);
 ```
@@ -111,6 +121,7 @@ which in turns yield the following records:
 @ 300 IN CAA 128 iodef "mailto:test@example.com"
 @ 300 IN CAA 128 issue "letsencrypt.org"
 @ 300 IN CAA 128 issue "comodoca.com"
+@ 300 IN CAA 128 issuemail ";"
 @ 300 IN CAA 128 issuewild ";"
 ```
 
@@ -121,6 +132,8 @@ which in turns yield the following records:
 * `iodef_critical:` This can be `true` or `false`. If enabled and CA does not support this record, then certificate issue will be refused. (Optional. Default: `false`)
 * `issue:` An array of CAs which are allowed to issue certificates. (Use `"none"` to refuse all CAs)
 * `issue_critical:` This can be `true` or `false`. If enabled and CA does not support this record, then certificate issue will be refused. (Optional. Default: `false`)
+* `issuemail:` An array of CAs which are allowed to issue e-mail certificates. (Can be simply `"none"` to refuse issuing wildcard certificates for all CAs)
+* `issuemail_critical:` This can be `true` or `false`. If enabled and CA does not support this record, then certificate issue will be refused. (Optional. Default: `false`)
 * `issuewild:` An array of CAs which are allowed to issue wildcard certificates. (Can be simply `"none"` to refuse issuing wildcard certificates for all CAs)
 * `issuewild_critical:` This can be `true` or `false`. If enabled and CA does not support this record, then certificate issue will be refused. (Optional. Default: `false`)
 * `ttl:` Input for `TTL` method (optional)

@@ -344,8 +344,9 @@ declare function AZURE_ALIAS(name: string, type: "A" | "AAAA" | "CNAME", target:
  *
  * Tag can be one of
  * 1. `"issue"`
- * 2. `"issuewild"`
- * 3. `"iodef"`
+ * 2. `"issuemail"`
+ * 3. `"issuewild"`
+ * 4. `"iodef"`
  *
  * Value is a string. The format of the contents is different depending on the tag. DNSControl will handle any escaping or quoting required, similar to TXT records. For example use `CAA("@", "issue", "letsencrypt.org")` rather than `CAA("@", "issue", "\"letsencrypt.org\"")`.
  *
@@ -358,6 +359,8 @@ declare function AZURE_ALIAS(name: string, type: "A" | "AAAA" | "CNAME", target:
  *   CAA("@", "issue", "letsencrypt.org"),
  *   // Allow no CA to issue wildcard certificate for this domain
  *   CAA("@", "issuewild", ";"),
+ *   // Allow no CA to issue e-mail certificate for this domain
+ *   CAA("@", "issuemail", ";"),
  *   // Report all violation to test@example.com. If CA does not support
  *   // this record then refuse to issue any certificate
  *   CAA("@", "iodef", "mailto:test@example.com", CAA_CRITICAL),
@@ -368,7 +371,7 @@ declare function AZURE_ALIAS(name: string, type: "A" | "AAAA" | "CNAME", target:
  *
  * @see https://docs.dnscontrol.org/language-reference/domain-modifiers/caa
  */
-declare function CAA(name: string, tag: "issue" | "issuewild" | "iodef", value: string, ...modifiers: RecordModifier[]): DomainModifier;
+declare function CAA(name: string, tag: "issue" | "issuemail" | "issuewild" | "iodef", value: string, ...modifiers: RecordModifier[]): DomainModifier;
 
 /**
  * DNSControl contains a `CAA_BUILDER` which can be used to simply create
@@ -390,6 +393,7 @@ declare function CAA(name: string, tag: "issue" | "issuewild" | "iodef", value: 
  *       "letsencrypt.org",
  *       "comodoca.com",
  *     ],
+ *     issuemail: "none",
  *     issuewild: "none",
  *   }),
  * END);
@@ -403,6 +407,7 @@ declare function CAA(name: string, tag: "issue" | "issuewild" | "iodef", value: 
  *   CAA("@", "issue", "letsencrypt.org"),
  *   CAA("@", "issue", "comodoca.com"),
  *   CAA("@", "issuewild", ";"),
+ *   CAA("@", "issuemail", ";"),
  * END);
  * ```
  *
@@ -413,6 +418,7 @@ declare function CAA(name: string, tag: "issue" | "issuewild" | "iodef", value: 
  * @ 300 IN CAA 0 issue "letsencrypt.org"
  * @ 300 IN CAA 0 issue "comodoca.com"
  * @ 300 IN CAA 0 issuewild ";"
+ * @ 300 IN CAA 0 issuemail ";"
  * ```
  *
  * ### Example with CAA_CRITICAL flag on all records
@@ -430,6 +436,8 @@ declare function CAA(name: string, tag: "issue" | "issuewild" | "iodef", value: 
  *       "comodoca.com",
  *     ],
  *     issue_critical: true,
+ *     issuemail: "none",
+ *     issuemail_critical: true,
  *     issuewild: "none",
  *     issuewild_critical: true,
  *   }),
@@ -443,6 +451,7 @@ declare function CAA(name: string, tag: "issue" | "issuewild" | "iodef", value: 
  *   CAA("@", "iodef", "mailto:test@example.com", CAA_CRITICAL),
  *   CAA("@", "issue", "letsencrypt.org", CAA_CRITICAL),
  *   CAA("@", "issue", "comodoca.com", CAA_CRITICAL),
+ *   CAA("@", "issuemail", ";", CAA_CRITICAL),
  *   CAA("@", "issuewild", ";", CAA_CRITICAL),
  * END);
  * ```
@@ -453,6 +462,7 @@ declare function CAA(name: string, tag: "issue" | "issuewild" | "iodef", value: 
  * @ 300 IN CAA 128 iodef "mailto:test@example.com"
  * @ 300 IN CAA 128 issue "letsencrypt.org"
  * @ 300 IN CAA 128 issue "comodoca.com"
+ * @ 300 IN CAA 128 issuemail ";"
  * @ 300 IN CAA 128 issuewild ";"
  * ```
  *
@@ -463,13 +473,15 @@ declare function CAA(name: string, tag: "issue" | "issuewild" | "iodef", value: 
  * * `iodef_critical:` This can be `true` or `false`. If enabled and CA does not support this record, then certificate issue will be refused. (Optional. Default: `false`)
  * * `issue:` An array of CAs which are allowed to issue certificates. (Use `"none"` to refuse all CAs)
  * * `issue_critical:` This can be `true` or `false`. If enabled and CA does not support this record, then certificate issue will be refused. (Optional. Default: `false`)
+ * * `issuemail:` An array of CAs which are allowed to issue e-mail certificates. (Can be simply `"none"` to refuse issuing wildcard certificates for all CAs)
+ * * `issuemail_critical:` This can be `true` or `false`. If enabled and CA does not support this record, then certificate issue will be refused. (Optional. Default: `false`)
  * * `issuewild:` An array of CAs which are allowed to issue wildcard certificates. (Can be simply `"none"` to refuse issuing wildcard certificates for all CAs)
  * * `issuewild_critical:` This can be `true` or `false`. If enabled and CA does not support this record, then certificate issue will be refused. (Optional. Default: `false`)
  * * `ttl:` Input for `TTL` method (optional)
  *
  * @see https://docs.dnscontrol.org/language-reference/domain-modifiers/caa_builder
  */
-declare function CAA_BUILDER(opts: { label?: string; iodef: string; iodef_critical?: boolean; issue: string[]; issue_critical?: boolean; issuewild: string[]; issuewild_critical?: boolean; ttl?: Duration }): DomainModifier;
+declare function CAA_BUILDER(opts: { label?: string; iodef: string; iodef_critical?: boolean; issue: string[]; issue_critical?: boolean; issuemail: string[]; issuemail_critical?: boolean; issuewild: string[]; issuewild_critical?: boolean; ttl?: Duration }): DomainModifier;
 
 /**
  * WARNING: Cloudflare is removing this feature and replacing it with a new
