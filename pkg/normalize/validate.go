@@ -409,7 +409,7 @@ func ValidateAndNormalizeConfig(config *models.DNSConfig) (errs []error) {
 				}
 				rec.SetLabel(name, domain.Name)
 			} else if rec.Type == "CAA" {
-				if rec.CaaTag != "issue" && rec.CaaTag != "issuewild" && rec.CaaTag != "iodef" {
+				if rec.CaaTag != "issue" && rec.CaaTag != "issuemail" && rec.CaaTag != "issuewild" && rec.CaaTag != "iodef" {
 					errs = append(errs, fmt.Errorf("CAA tag %s is invalid", rec.CaaTag))
 				}
 			} else if rec.Type == "TLSA" {

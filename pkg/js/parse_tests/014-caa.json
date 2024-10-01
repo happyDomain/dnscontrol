@@ -22,6 +22,12 @@
         {
           "type": "CAA",
           "name": "@",
+          "target": ";",
+          "caatag": "issuemail"
+        },
+        {
+          "type": "CAA",
+          "name": "@",
           "target": "mailto:test@example.com",
           "caatag": "iodef",
           "caaflag": 128

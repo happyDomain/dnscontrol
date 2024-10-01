@@ -441,7 +441,8 @@ www.ipv6	CNAME	services.ipv6
 ;;; ======================================================================
 ; Zone Identity Services {{{
 
-; CAA: originally:RFC 6844 ; currently: RFC 8659, with extensions in RFC 8657
+; CAA: originally:RFC 6844 ; currently: RFC 8659, with extensions in RFC 8657 and
+; RFC 9495 (issuemail)
 ;
 ; issue/issuewild tags use values which are "rest of data" (not Strings, no 255
 ; limit) and which are a domain name, followed optionally by parameters, each
@@ -495,6 +496,7 @@ www.ipv6	CNAME	services.ipv6
 @		CAA	0	issue "letsencrypt.org\; accounturi=https://acme-staging-v02.api.letsencrypt.org/acme/acct/23456789"
 @		CAA	0	issue "letsencrypt.org\; accounturi=https://acme-v02.api.letsencrypt.org/acme/acct/76543210"
 ;@		CAA	0	issue "amazonaws.com"
+@		CAA	0	issuemail ";"
 @		CAA	0	issuewild ";"
 @		CAA	0	iodef "mailto:security@example.org"
 
