@@ -518,6 +518,10 @@ func (api *inwxAPI) fetchNameserverDomains() error {
 			return err
 		}
 		for _, domain := range info.Domains {
+			if domain.Type != "MASTER" {
+				continue
+			}
+
 			// If this is an IDN domain, Nameservers.List.Domains[].Domain
 			// will contain the Unicode name but subsequent calls use the ACE
 			// encoded name. We will convert it now for use as the cache key
