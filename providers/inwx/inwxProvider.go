@@ -548,13 +548,27 @@ func (api *inwxAPI) fetchNameserverDomains() error {
 	zones := map[string]int{}
 	request := &goinwx.NameserverListRequest{}
 	page := 1
+	// info.Count is the total number of domains across every page, so the
+	// paging has to be driven by how many were listed, not by how many were
+	// kept: filtering SLAVE zones out of `zones` would otherwise never let it
+	// reach info.Count and the loop would never end.
+	listed := 0
 	for {
 		request.Page = page
 		info, err := api.client.Nameservers.ListWithParams(request)
 		if err != nil {
 			return err
 		}
+		if len(info.Domains) == 0 {
+			break
+		}
 		for _, domain := range info.Domains {
+			listed++
+
+			if domain.Type != "MASTER" {
+				continue
+			}
+
 			// If this is an IDN domain, Nameservers.List.Domains[].Domain
 			// will contain the Unicode name but subsequent calls use the ACE
 			// encoded name. We will convert it now for use as the cache key
@@ -564,7 +578,7 @@ func (api *inwxAPI) fetchNameserverDomains() error {
 			}
 			zones[aceName] = domain.RoID
 		}
-		if len(zones) >= info.Count {
+		if listed >= info.Count {
 			break
 		}
 		page++
