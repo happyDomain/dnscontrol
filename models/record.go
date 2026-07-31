@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/DNSControl/dnscontrol/v4/pkg/txtutil"
@@ -362,7 +361,10 @@ func (rc *RecordConfig) ToRR() dnsv1.RR {
 	// Function is not valid on pseudo-types.
 	rdtype, ok := dnsv1.StringToType[rc.Type]
 	if !ok {
-		log.Fatalf("No such DNS type as (%#v)\n", rc.Type)
+		// Panic instead of log.Fatalf: a library has no business calling
+		// os.Exit on its caller. Long-running embedders can recover from this
+		// and turn it into an error, which os.Exit makes impossible.
+		panic(fmt.Sprintf("No such DNS type as (%#v)", rc.Type))
 	}
 
 	// If this IsModernType, the dns.RR is already in rc.F.
@@ -550,7 +552,8 @@ func (rc *RecordConfig) GetSVCBValue() []dnsv1.SVCBKeyValue {
 
 	record, err := dnsv1.NewRR(fmt.Sprintf("%s %s %d %s %s", rc.NameFQDN, rc.Type, rc.SvcPriority, rc.target, rc.SvcParams))
 	if err != nil {
-		log.Fatalf("could not parse SVCB record: %s", err)
+		// See ToRR above: panic rather than kill the caller's process.
+		panic(fmt.Sprintf("could not parse SVCB record: %s", err))
 	}
 	switch r := record.(type) {
 	case *dnsv1.HTTPS:
