@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"unicode"
@@ -51,7 +50,10 @@ func legacySetTargetArgsTXT(rc *RecordConfig, args ...any) error {
 
 	rd, err := MakeTXT("", nil, nrc.Flags{}, args...)
 	if err != nil {
-		log.Fatalf("legacySetTargetArgs: Failed to create RDATA for type %s: %+v", rc.Type, err)
+		// Return the error rather than log.Fatalf: a library has no business
+		// calling os.Exit on its caller, and this function already reports
+		// failures to a caller that handles them.
+		return fmt.Errorf("legacySetTargetArgs: failed to create RDATA for type %s: %w", rc.Type, err)
 	}
 	rc.SetRDATA(rd)
 

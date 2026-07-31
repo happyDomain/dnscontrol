@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 
 	dnsv2 "codeberg.org/miekg/dns"
@@ -167,7 +166,10 @@ func (rc *RecordConfig) ToRRv2() dnsv2.RR {
 	// Function is only valid on defined types.
 	rdtype, ok := dnsv2.StringToType[rc.Type]
 	if !ok {
-		log.Fatalf("No such DNS type as (%#v)\n", rc.Type)
+		// Panic instead of log.Fatalf: a library has no business calling
+		// os.Exit on its caller. Long-running embedders can recover from this
+		// and turn it into an error, which os.Exit makes impossible.
+		panic(fmt.Sprintf("No such DNS type as (%#v)", rc.Type))
 	}
 	if rdtype != rc.TypeNum {
 		panic("should not happen: ToRRv2")
