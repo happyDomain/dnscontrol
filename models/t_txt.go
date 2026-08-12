@@ -39,7 +39,8 @@ There are 2 ways to get the value (target) of a TXT record:
 // identical to TXT, such as SPF. For more details, read
 // https://tools.ietf.org/html/rfc4408#section-3.1.1
 func (rc *RecordConfig) HasFormatIdenticalToTXT() bool {
-	return rc.Type == "TXT" || rc.Type == "SPF" || rc.Type == "LUA"
+	return rc.Type == "TXT" || rc.Type == "SPF" || rc.Type == "LUA" ||
+		rc.Type == "AVC" || rc.Type == "NINFO"
 }
 
 // SetTargetTXT sets the TXT fields when there is 1 string.
