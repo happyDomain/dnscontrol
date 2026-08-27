@@ -82,3 +82,28 @@ func TestCapabilitiesAreFiltered(t *testing.T) {
 		}
 	}
 }
+
+// TestCapabilitiesForType checks the exported view of providerCapabilityChecks
+// agrees with the table itself, including the disjunction DS carries.
+func TestCapabilitiesForType(t *testing.T) {
+	for _, pair := range providerCapabilityChecks {
+		got := CapabilitiesForType(pair.rType)
+		if len(got) != len(pair.caps) {
+			t.Errorf("CapabilitiesForType(%q) gave %v, want %v", pair.rType, got, pair.caps)
+			continue
+		}
+		for i := range got {
+			if got[i] != pair.caps[i] {
+				t.Errorf("CapabilitiesForType(%q) gave %v, want %v", pair.rType, got, pair.caps)
+				break
+			}
+		}
+	}
+
+	// A type every provider handles, and one that does not exist.
+	for _, rType := range []string{"A", "CNAME", "NOSUCHTYPE"} {
+		if got := CapabilitiesForType(rType); got != nil {
+			t.Errorf("CapabilitiesForType(%q) gave %v, want nil", rType, got)
+		}
+	}
+}

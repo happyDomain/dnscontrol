@@ -851,6 +851,27 @@ var providerCapabilityChecks = []pairTypeCapability{
 	},
 }
 
+// CapabilitiesForType returns the capabilities a provider must have to accept
+// records of the given type, as spelled in dnsv2.TypeToString. A provider needs
+// at least one of them, not all.
+//
+// It returns nil for a type that requires no particular capability, which is the
+// case for the types every provider is expected to handle (A, AAAA, CNAME, MX,
+// NS, TXT) as well as for one it does not know.
+//
+// This is the same table checkProviderCapabilities enforces, exported so that a
+// program embedding DNSControl can ask which types a given provider accepts
+// without having to keep a copy of it.
+func CapabilitiesForType(rType string) []providers.Capability {
+	for _, pair := range providerCapabilityChecks {
+		if pair.rType == rType {
+			return slices.Clone(pair.caps)
+		}
+	}
+
+	return nil
+}
+
 type pairTypeCapability struct {
 	rType string
 	// Capabilities the provider must implement if any records of type rType are found
