@@ -42,6 +42,9 @@ func (rr *AKAMAITLC) Len() int {
 func (rr *AKAMAITLC) Data() dnsv2.RDATA {
 	return privatetypesrdata.AKAMAITLC{AnswerType: rr.AnswerType, Target: rr.Target}
 }
+func (rr *AKAMAITLC) SetData(rd dnsv2.RDATA) {
+	rr.AKAMAITLC, _ = rd.(privatetypesrdata.AKAMAITLC)
+}
 func (rr *AKAMAITLC) Clone() dnsv2.RR {
 	return &AKAMAITLC{
 		Hdr:        rr.Hdr,

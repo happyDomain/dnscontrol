@@ -40,6 +40,9 @@ func (rr *MIKROTIKFWD) Len() int {
 func (rr *MIKROTIKFWD) Data() dnsv2.RDATA {
 	return privatetypesrdata.MIKROTIKFWD{ForwardTo: rr.ForwardTo}
 }
+func (rr *MIKROTIKFWD) SetData(rd dnsv2.RDATA) {
+	rr.MIKROTIKFWD, _ = rd.(privatetypesrdata.MIKROTIKFWD)
+}
 func (rr *MIKROTIKFWD) Clone() dnsv2.RR {
 	return &MIKROTIKFWD{
 		Hdr:       rr.Hdr,

@@ -40,6 +40,9 @@ func (rr *MIKROTIKFORWARDER) Len() int {
 func (rr *MIKROTIKFORWARDER) Data() dnsv2.RDATA {
 	return privatetypesrdata.MIKROTIKFORWARDER{Target: rr.Target}
 }
+func (rr *MIKROTIKFORWARDER) SetData(rd dnsv2.RDATA) {
+	rr.MIKROTIKFORWARDER, _ = rd.(privatetypesrdata.MIKROTIKFORWARDER)
+}
 func (rr *MIKROTIKFORWARDER) Clone() dnsv2.RR {
 	return &MIKROTIKFORWARDER{
 		Hdr:    rr.Hdr,

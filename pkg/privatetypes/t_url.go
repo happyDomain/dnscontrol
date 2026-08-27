@@ -40,6 +40,9 @@ func (rr *URL) Len() int {
 func (rr *URL) Data() dnsv2.RDATA {
 	return privatetypesrdata.URL{Location: rr.Location}
 }
+func (rr *URL) SetData(rd dnsv2.RDATA) {
+	rr.URL, _ = rd.(privatetypesrdata.URL)
+}
 func (rr *URL) Clone() dnsv2.RR {
 	return &URL{
 		Hdr:      rr.Hdr,

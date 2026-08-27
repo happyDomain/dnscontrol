@@ -44,6 +44,9 @@ func (rr *R53ALIAS) Len() int {
 func (rr *R53ALIAS) Data() dnsv2.RDATA {
 	return privatetypesrdata.R53ALIAS{AliasType: rr.AliasType, Target: rr.Target, EvalTargetHealth: rr.EvalTargetHealth, ZoneID: rr.ZoneID}
 }
+func (rr *R53ALIAS) SetData(rd dnsv2.RDATA) {
+	rr.R53ALIAS, _ = rd.(privatetypesrdata.R53ALIAS)
+}
 func (rr *R53ALIAS) Clone() dnsv2.RR {
 	return &R53ALIAS{
 		Hdr:              rr.Hdr,

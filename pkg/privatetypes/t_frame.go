@@ -40,6 +40,9 @@ func (rr *FRAME) Len() int {
 func (rr *FRAME) Data() dnsv2.RDATA {
 	return privatetypesrdata.FRAME{Target: rr.Target}
 }
+func (rr *FRAME) SetData(rd dnsv2.RDATA) {
+	rr.FRAME, _ = rd.(privatetypesrdata.FRAME)
+}
 func (rr *FRAME) Clone() dnsv2.RR {
 	return &FRAME{
 		Hdr:    rr.Hdr,

@@ -40,6 +40,9 @@ func (rr *CLOUDNSWR) Len() int {
 func (rr *CLOUDNSWR) Data() dnsv2.RDATA {
 	return privatetypesrdata.CLOUDNSWR{Target: rr.Target}
 }
+func (rr *CLOUDNSWR) SetData(rd dnsv2.RDATA) {
+	rr.CLOUDNSWR, _ = rd.(privatetypesrdata.CLOUDNSWR)
+}
 func (rr *CLOUDNSWR) Clone() dnsv2.RR {
 	return &CLOUDNSWR{
 		Hdr:    rr.Hdr,

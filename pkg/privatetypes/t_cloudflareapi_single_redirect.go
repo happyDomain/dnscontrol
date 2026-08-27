@@ -45,6 +45,9 @@ func (rr *CLOUDFLAREAPISINGLEREDIRECT) Len() int {
 func (rr *CLOUDFLAREAPISINGLEREDIRECT) Data() dnsv2.RDATA {
 	return privatetypesrdata.CLOUDFLAREAPISINGLEREDIRECT{SRName: rr.SRName, Code: rr.Code, SRWhen: rr.SRWhen, SRThen: rr.SRThen, RT_SRRRulesetID: rr.RT_SRRRulesetID, RT_SRRRulesetRuleID: rr.RT_SRRRulesetRuleID}
 }
+func (rr *CLOUDFLAREAPISINGLEREDIRECT) SetData(rd dnsv2.RDATA) {
+	rr.CLOUDFLAREAPISINGLEREDIRECT, _ = rd.(privatetypesrdata.CLOUDFLAREAPISINGLEREDIRECT)
+}
 func (rr *CLOUDFLAREAPISINGLEREDIRECT) Clone() dnsv2.RR {
 	return &CLOUDFLAREAPISINGLEREDIRECT{
 		Hdr:                 rr.Hdr,

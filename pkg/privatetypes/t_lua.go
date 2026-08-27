@@ -41,6 +41,9 @@ func (rr *LUA) Len() int {
 func (rr *LUA) Data() dnsv2.RDATA {
 	return privatetypesrdata.LUA{LuaType: rr.LuaType, LuaPayload: rr.LuaPayload}
 }
+func (rr *LUA) SetData(rd dnsv2.RDATA) {
+	rr.LUA, _ = rd.(privatetypesrdata.LUA)
+}
 func (rr *LUA) Clone() dnsv2.RR {
 	return &LUA{
 		Hdr:        rr.Hdr,

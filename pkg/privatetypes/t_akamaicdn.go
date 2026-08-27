@@ -41,6 +41,9 @@ func (rr *AKAMAICDN) Len() int {
 func (rr *AKAMAICDN) Data() dnsv2.RDATA {
 	return privatetypesrdata.AKAMAICDN{Target: rr.Target}
 }
+func (rr *AKAMAICDN) SetData(rd dnsv2.RDATA) {
+	rr.AKAMAICDN, _ = rd.(privatetypesrdata.AKAMAICDN)
+}
 func (rr *AKAMAICDN) Clone() dnsv2.RR {
 	return &AKAMAICDN{
 		Hdr:    rr.Hdr,

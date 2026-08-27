@@ -40,6 +40,9 @@ func (rr *PORKBUNURLFWD) Len() int {
 func (rr *PORKBUNURLFWD) Data() dnsv2.RDATA {
 	return privatetypesrdata.PORKBUNURLFWD{Location: rr.Location}
 }
+func (rr *PORKBUNURLFWD) SetData(rd dnsv2.RDATA) {
+	rr.PORKBUNURLFWD, _ = rd.(privatetypesrdata.PORKBUNURLFWD)
+}
 func (rr *PORKBUNURLFWD) Clone() dnsv2.RR {
 	return &PORKBUNURLFWD{
 		Hdr:      rr.Hdr,

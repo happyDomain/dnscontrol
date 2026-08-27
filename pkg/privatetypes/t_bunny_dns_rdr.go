@@ -40,6 +40,9 @@ func (rr *BUNNYDNSRDR) Len() int {
 func (rr *BUNNYDNSRDR) Data() dnsv2.RDATA {
 	return privatetypesrdata.BUNNYDNSRDR{Target: rr.Target}
 }
+func (rr *BUNNYDNSRDR) SetData(rd dnsv2.RDATA) {
+	rr.BUNNYDNSRDR, _ = rd.(privatetypesrdata.BUNNYDNSRDR)
+}
 func (rr *BUNNYDNSRDR) Clone() dnsv2.RR {
 	return &BUNNYDNSRDR{
 		Hdr:    rr.Hdr,

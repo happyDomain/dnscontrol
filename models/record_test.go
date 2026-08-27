@@ -2,6 +2,7 @@ package models
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	dnsv2 "codeberg.org/miekg/dns"
@@ -232,6 +233,40 @@ func Test_makeLabelNameUnicode(t *testing.T) {
 			got, _ := makeLabelNameUnicode(tt.name)
 			if got != tt.want {
 				t.Errorf("makeNameUnicode(%q) = %v, want %v", tt.name, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestToRRv2PrivateType covers the private use types DNSControl declares itself
+// (ALIAS and friends). ToRRv2 builds a record by looking the rdata setter up in
+// dnsv2.TypeToRDATA, which the dns library generates for its own types only:
+// without the registration pkg/privatetypes makes, this dereferences a nil
+// function rather than returning a record.
+func TestToRRv2PrivateType(t *testing.T) {
+	for _, testCase := range []struct {
+		rtype string
+		zone  string
+	}{
+		{"ALIAS", "example.com.\t300\tIN\tALIAS\ttarget.example.net."},
+		{"AKAMAICDN", "www.example.com.\t300\tIN\tAKAMAICDN\ttarget.example.net."},
+		{"R53_ALIAS", "cdn.example.com.\t300\tIN\tR53_ALIAS\tA aws.example.net. false Z1234"},
+	} {
+		t.Run(testCase.rtype, func(t *testing.T) {
+			zp := dnsv2.NewZoneParser(strings.NewReader(testCase.zone+"\n"), "example.com", "test")
+			rr, ok := zp.Next()
+			if !ok {
+				t.Fatalf("parsing %q: %v", testCase.zone, zp.Err())
+			}
+
+			dc := MustNewDomainConfig("example.com")
+			rec, err := dc.NewRecordConfigForRRv2toRC(dc.LabelFromFQDNWithDot(rr.Header().Name), rr.Header().TTL, dnsv2.RRToType(rr), rr.Data())
+			if err != nil {
+				t.Fatalf("NewRecordConfigForRRv2toRC: %v", err)
+			}
+
+			if got := rec.ToRRv2().String(); got != testCase.zone {
+				t.Errorf("ToRRv2 gave %q, want %q", got, testCase.zone)
 			}
 		})
 	}

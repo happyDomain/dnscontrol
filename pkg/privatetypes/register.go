@@ -59,6 +59,21 @@ func Register(codepoint uint16, typeName string, newFn func() dnsv2.RR, makeFn M
 	}
 	dnsv2.StringToType[typeName] = codepoint
 
+	// typenum -> func(RR, RDATA) i.e. a function that copies an RDATA into the
+	// fields of an RR of that code point.
+	//
+	// The dns library generates this map for the types it declares itself, so a
+	// private type is absent from it and models.RecordConfig.ToRRv2, which
+	// builds a record by calling it, dereferences a nil function. The generated
+	// SetData is the inverse of the RR's Data method.
+	dnsv2.TypeToRDATA[codepoint] = func(rr dnsv2.RR, rd dnsv2.RDATA) {
+		setter, ok := rr.(interface{ SetData(dnsv2.RDATA) })
+		if !ok {
+			panic(fmt.Sprintf("%s (%d) has no SetData method", typeName, codepoint))
+		}
+		setter.SetData(rd)
+	}
+
 	RegisterMaker(codepoint, makeFn)
 }
 

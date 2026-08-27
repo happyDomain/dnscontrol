@@ -342,6 +342,16 @@ func generateTypeFile(t *TypeDef) error {
 	}
 	buf.WriteString("}\n")
 
+	// SetData is the inverse of Data. Register puts it in dnsv2.TypeToRDATA,
+	// which is how models.RecordConfig.ToRRv2 fills a record.
+	if len(t.Fields) == 0 && len(t.OptionalFields) == 0 && len(t.RuntimeFields) == 0 {
+		fmt.Fprintf(&buf, "func (rr *%s) SetData(dnsv2.RDATA) {}\n", typeName)
+	} else {
+		fmt.Fprintf(&buf, "func (rr *%s) SetData(rd dnsv2.RDATA) {\n", typeName)
+		fmt.Fprintf(&buf, "\trr.%s, _ = rd.(privatetypesrdata.%s)\n", typeName, typeName)
+		buf.WriteString("}\n")
+	}
+
 	fmt.Fprintf(&buf, "func (rr *%s) Clone() dnsv2.RR {\n", typeName)
 	if len(t.Fields) == 0 && len(t.OptionalFields) == 0 && len(t.RuntimeFields) == 0 {
 		fmt.Fprintf(&buf, "\treturn &%s{\n", typeName)

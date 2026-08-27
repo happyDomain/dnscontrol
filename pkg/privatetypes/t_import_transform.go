@@ -43,6 +43,9 @@ func (rr *IMPORTTRANSFORM) Len() int {
 func (rr *IMPORTTRANSFORM) Data() dnsv2.RDATA {
 	return privatetypesrdata.IMPORTTRANSFORM{TransformTable: rr.TransformTable, TTL: rr.TTL, SuffixStrip: rr.SuffixStrip, TargetDomain: rr.TargetDomain}
 }
+func (rr *IMPORTTRANSFORM) SetData(rd dnsv2.RDATA) {
+	rr.IMPORTTRANSFORM, _ = rd.(privatetypesrdata.IMPORTTRANSFORM)
+}
 func (rr *IMPORTTRANSFORM) Clone() dnsv2.RR {
 	return &IMPORTTRANSFORM{
 		Hdr:            rr.Hdr,
